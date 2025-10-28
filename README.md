@@ -2,24 +2,21 @@ Path-IO/
 │
 ├── 1.Patch_extraction_WSI_habitat_map_generation/
 │   ├── Extracts tissue regions and tiles WSIs
-│   ├── Generates patch-level habitat maps 
-│   └── Outputs: Tissue habitat maps
+│   ├── Generates patch-level habitat maps using foundation model features
+│   └── Outputs: patch features (.h5 / .csv) and tissue masks
 │
 ├── 2.WSI_map_preprocessing/
-│   ├── Preprocess WSI Habitat Maps 
-│   ├── Performs tissue ROI generation
-│   └── Outputs: .npy files for tissue ROIs
+│   ├── Aggregates patch-level features to slide-level representations
+│   ├── Performs feature normalization, cleaning, and ROI filtering
+│   └── Outputs: processed slide-level feature maps
 │
 ├── 3.Survival_prediction/
 │   ├── Implements model training for risk prediction (Path-IO risk score)
+│   ├── Includes Cox, DeepSurv, and attention-based MIL modules
+│   └── Outputs: trained models, risk scores, survival curves
 │
-│   └── Outputs: trained models, risk scores
 └── 4.Stratification/
     ├── Performs patient grouping by predicted risk and clinical features
-    ├── Generates Kaplan–Meier for OS/PFS analyses
+    ├── Generates Kaplan–Meier and forest plots for OS/PFS analyses
     └── Outputs: stratification figures and summary statistics
-    
-git clone https://github.com/WuLabMDA/PATH-IO.git
-cd Path-IO
-pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu117
 
