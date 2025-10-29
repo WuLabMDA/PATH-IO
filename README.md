@@ -4,7 +4,7 @@ Path-IO (Pathology-Driven Immunotherapy Optimization) is a biologically grounded
 
 ---
 
-## 📦 Repository Structure
+# 📦 Repository Structure
 
 ```
 ├── 1.Patch_extraction_WSI_habitat_map_generation/   # Patch extraction & habitat map generation  
