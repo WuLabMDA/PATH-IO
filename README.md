@@ -179,7 +179,16 @@ This stage interprets **patient-level risk scores** into clinically meaningful g
 
 
 
-## 🧑‍💻 Contact
-**Rukhmini Bandyopadhyay, PhD**  
-Postdoctoral Fellow, MD Anderson Cancer Center  
-📧 [email protected]
+## 🐞 Reporting Issues
+
+Path-IO is under continuous development.  
+If you encounter any issues while running the pipeline, please first ensure that all required packages listed in `requirements.txt` are properly installed and that your environment matches the recommended setup.  
+
+If the problem persists, kindly open a new issue in the repository describing:
+- The exact step or module where the error occurred  
+- The error message or traceback (if any)  
+- A minimal code snippet or demo example to help reproduce the issue  
+
+We will review your report and provide a fix or workaround as soon as possible.  
+Thank you for helping us improve Path-IO!
+
