@@ -2,6 +2,18 @@
 > This repository hosts the complete *Path-IO* computational pathology framework for predicting immunotherapy outcomes in metastatic non–small cell lung cancer (mNSCLC) using H&E whole-slide images (WSIs).  
 > The pipeline integrates patch-level tissue classification, WSI habitat mapping, ROI preprocessing, survival modeling, and patient-level risk stratification.  
 > It is designed for reproducible, multi-institutional research in digital pathology and translational oncology.
+---
+
+## 🌟 Key Features
+
+- **Multi-stage modular design:** From patch extraction to patient-level stratification, each step is modular and reproducible.  
+- **Tissue habitat mapping:** Generates interpretable WSI-level maps capturing tumor–stroma–immune microenvironment composition.  
+- **ROI-based survival modeling:** Aggregates biologically relevant regions of interest to build robust slide-level and patient-level survival models.  
+- **Fisher vector encoding:** Encodes multi-slide patient information into a unified representation for Random Survival Forest (RSF) analysis.  
+- **Clinical stratification:** Provides Kaplan–Meier curves, hazard ratios, and subgroup analyses (PD-L1, IO strategy, etc.) for OS and PFS.  
+- **Scalable & reproducible:** Designed for multi-institutional datasets with standardized outputs for downstream statistical analysis and publication.
+
+---
 
 # 🧬 Path-IO Pipeline
 
