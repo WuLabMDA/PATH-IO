@@ -60,5 +60,5 @@ This stage prepares slide-level spatial context.
 ---
 
 ### 🧾 Outputs from Step 1
-- Patch-level labels and features  
+- Patch-level labels  
 - Tissue habitat map per WSI
