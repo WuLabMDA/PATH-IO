@@ -26,7 +26,7 @@ conda activate pathio_env
 
 # install all dependencies
 pip install -r requirements.txt
-
+```
 ## 🧩 Step 1: Patch Extraction + WSI Habitat Map Generation
 
 **Folder:** `1.Patch_extraction_WSI_habitat_map_generation/`
