@@ -62,3 +62,31 @@ This stage prepares slide-level spatial context.
 ### 🧾 Outputs from Step 1
 - Patch-level labels  
 - Tissue habitat map per WSI
+## 🧠 Step 2: WSI Habitat Map Preprocessing
+
+**Folder:** `2.WSI_map_preprocessing/`
+
+This stage refines the raw tissue habitat maps into biologically meaningful **Regions of Interest (ROIs)** suitable for downstream survival modeling.
+
+---
+
+### 2.1 ROI Extraction & Cleaning
+- Identify and isolate informative tissue regions (e.g., tumor-enriched or immune-infiltrated habitats).  
+- Remove background, artifacts, or non-tissue areas.  
+- Optionally smooth, merge, or threshold small disconnected regions to ensure spatial consistency.
+
+---
+
+### 2.2 ROI-Level Feature Representation
+- Compute region-based quantitative features such as:
+  - Proportion of tissue types per ROI  
+  - Spatial heterogeneity metrics  
+  - Morphological or texture features  
+- Convert cleaned habitat maps into **slide-level feature matrices** summarizing each WSI.
+
+---
+
+### 🧾 Outputs from Step 2
+- ROI-based feature tables (one per WSI)  
+- Mapping file linking **WSIs → patients**  
+- Preprocessed features ready for survival model training
