@@ -14,10 +14,16 @@ Path-IO (Pathology-Driven Immunotherapy Optimization) is a biologically grounded
 ├── requirements.txt                                 # Dependencies  
 └── README.md                                        # Documentation  
 ```
-# ⚙️ Environment Setup
-#(optional) create a new conda environment
+
+## ⚙️ Environment Setup
+
+Before running any step, create and activate an environment and install the required dependencies.
+
+```bash
+# (optional) create a new conda environment
 conda create -n pathio_env python=3.10 -y
 conda activate pathio_env
 
-#install all dependencies
+# install all dependencies
 pip install -r requirements.txt
+
