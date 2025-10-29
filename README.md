@@ -168,39 +168,7 @@ This stage interprets **patient-level risk scores** into clinically meaningful g
 
 ---
 
-## 🔁 End-to-End Workflow Summary
 
-The complete Path-IO pipeline from patch extraction to patient stratification is shown below.
-
-```mermaid
-flowchart LR
-    A[Step 1: Patch Extraction & Habitat Map Generation] --> B[Step 2: WSI Habitat Map Preprocessing]
-    B --> C[Step 3: Survival Prediction]
-    C --> D[Step 4: Stratification]
-
-    subgraph S1 [Step 1 Details]
-        A1[Patch Extraction] --> A2[Tissue Classification Training]
-        A2 --> A3[Patch-Level Prediction]
-        A3 --> A4[WSI Habitat Map Reconstruction]
-    end
-
-    subgraph S2 [Step 2 Details]
-        B1[ROI Extraction and Cleaning] --> B2[ROI-Level Feature Computation]
-    end
-
-    subgraph S3 [Step 3 Details]
-        C1[Slide-Level Survival Modeling] --> C2[Fisher Encoding per Patient]
-        C2 --> C3[Random Survival Forest Training]
-        C3 --> C4[Patient-Level Risk Scores]
-    end
-
-    subgraph S4 [Step 4 Details]
-        D1[High vs Low Risk Grouping] --> D2[Kaplan-Meier Curves (OS and PFS)]
-        D2 --> D3[Hazard Ratio, CI, p-value]
-    end
-
-
----
 
 ## 🧪 Notes
 - All paths and parameters (patch size, magnification, model architecture, etc.) are configurable in the corresponding folders.  
