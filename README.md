@@ -7,9 +7,8 @@
 ## 🌟 Key Features
 
 - **Multi-stage modular design:** From patch extraction to patient-level stratification, each step is modular and reproducible.  
-- **Tissue habitat mapping:** Generates interpretable WSI-level maps capturing tumor–stroma–immune microenvironment composition.  
-- **ROI-based survival modeling:** Aggregates biologically relevant regions of interest to build robust slide-level and patient-level survival models.  
-- **Fisher vector encoding:** Encodes multi-slide patient information into a unified representation for Random Survival Forest (RSF) analysis.  
+- **Tissue habitat mapping:** Generates interpretable WSI-level tissue habitat maps.  
+- **Patient-level survival modeling:** Aggregates biologically relevant regions of interest to build robust patient-level survival models.   
 - **Clinical stratification:** Provides Kaplan–Meier curves, hazard ratios, and subgroup analyses (PD-L1, IO strategy, etc.) for OS and PFS.  
 - **Scalable & reproducible:** Designed for multi-institutional datasets with standardized outputs for downstream statistical analysis and publication.
 
@@ -17,7 +16,7 @@
 
 # 🧬 Path-IO Pipeline
 
-End-to-end computational pathology pipeline for predicting immunotherapy outcomes from H&E whole-slide images (WSIs).  
+Path-IO (Pathology-Driven Immunotherapy Optimization), a biologically grounded, interpretable framework that predicts patient response to immunotherapy directly from routine H&E slides. 
 The workflow includes patch extraction, tissue habitat mapping, ROI preprocessing, survival modeling, patient-level risk scoring, and clinical stratification.
 
 ---
@@ -73,7 +72,7 @@ This stage prepares slide-level spatial context.
 - Each region encodes the predicted tissue type.
 
 ### 🧾 Outputs from Step 1
-- Patch-level labels and features  
+- Patch-level labels
 - Tissue habitat map per WSI  
 
 ---
@@ -85,21 +84,12 @@ This stage prepares slide-level spatial context.
 This stage refines the raw tissue habitat maps into biologically meaningful **Regions of Interest (ROIs)** suitable for downstream survival modeling.
 
 ### 2.1 ROI Extraction & Cleaning
-- Identify informative tissue regions (e.g., tumor-enriched or immune-infiltrated habitats).  
+- Identify informative tissue regions.  
 - Remove background, artifacts, or non-tissue areas.  
 - Optionally smooth, merge, or threshold small regions.
 
-### 2.2 ROI-Level Feature Representation
-- Compute region-based quantitative features such as:  
-  - Proportion of tissue types per ROI  
-  - Spatial heterogeneity metrics  
-  - Morphological or texture features  
-- Convert cleaned maps into **slide-level feature matrices**.
-
-### 🧾 Outputs from Step 2
-- ROI-based feature tables (one per WSI)  
-- Mapping file linking **WSIs → patients**  
-- Preprocessed features ready for survival training  
+### 🧾 Outputs from Step 2  
+- Preprocessed WSI maps ready for survival training  
 
 ---
 
@@ -107,15 +97,10 @@ This stage refines the raw tissue habitat maps into biologically meaningful **Re
 
 **Folder:** `3.Survival_prediction/`
 
-This stage builds the **slide-level** and **patient-level survival models** to predict progression-free survival (PFS) and overall survival (OS).
+This stage builds the **patient-level survival models** to predict progression-free survival (PFS) and overall survival (OS).
 
-### 3.1 Slide-Level Survival Model
-- Train a survival model using **slide-level or ROI-derived features**.  
-- Supported types: Cox PH, Random Survival Forest (RSF), or deep survival networks.  
-- Identify morphological patterns associated with prognosis.
-
-### 3.2 Patient-Level Risk Score Prediction
-Aggregate multiple WSIs per patient to form a unified patient representation.
+### 3.1 Patient-Level Risk Score Prediction
+Aggregate multiple WSIs per patient to form a unified patient representation. 
 
 #### 🧮 Fisher Vector Encoding
 - Encode all slide-level features for each patient into a single high-dimensional vector.  
@@ -124,12 +109,9 @@ Aggregate multiple WSIs per patient to form a unified patient representation.
 #### 🌲 Random Survival Forest (RSF) Training
 - Train an RSF model on the Fisher-encoded patient vectors.  
 - Output continuous **risk scores** per patient:  
-  - High score → higher risk of progression/death  
-  - Low score → lower risk and better prognosis
 
 ### 🧾 Outputs from Step 3
 - Trained slide- and patient-level models  
-- Fisher-encoded patient features  
 - Predicted risk scores for OS and PFS  
 - Evaluation metrics (C-index, log-rank p)  
 
@@ -153,18 +135,11 @@ This stage interprets **patient-level risk scores** into clinically meaningful g
 - Compute and report: HR, 95 % CI, log-rank *p* value.  
 - Optionally annotate HR/CI on the plots.
 
-### 4.3 Clinical Subgroup Analysis (Optional)
-- Evaluate model performance across subgroups:  
-  - PD-L1 status (High / Low / Intermediate)  
-  - IO strategy (ICI-mono vs ICI-chemo)  
-  - ECOG score, Stage, Metastatic sites, etc.  
-- Generate subgroup-wise KM or forest plots.
 
 ### 🧾 Outputs from Step 4
 - Kaplan–Meier plots (OS & PFS)  
 - Forest plots / summary tables (HR & CI)  
 - CSVs with risk groups & statistics  
-- Publication-ready figures  
 
 ---
 
