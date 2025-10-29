@@ -174,36 +174,31 @@ The complete Path-IO pipeline from patch extraction to patient stratification is
 
 ```mermaid
 flowchart LR
-    A[🧩 Step 1<br/>Patch Extraction & Habitat Map Generation] --> B[🧠 Step 2<br/>WSI Habitat Map Preprocessing]
-    B --> C[🔬 Step 3<br/>Survival Prediction]
-    C --> D[📊 Step 4<br/>Stratification]
+    A[Step 1: Patch Extraction & Habitat Map Generation] --> B[Step 2: WSI Habitat Map Preprocessing]
+    B --> C[Step 3: Survival Prediction]
+    C --> D[Step 4: Stratification]
 
-    subgraph S1[ ]
+    subgraph S1 [Step 1 Details]
         A1[Patch Extraction] --> A2[Tissue Classification Training]
         A2 --> A3[Patch-Level Prediction]
         A3 --> A4[WSI Habitat Map Reconstruction]
     end
 
-    subgraph S2[ ]
-        B1[ROI Extraction & Cleaning] --> B2[ROI-Level Feature Computation]
+    subgraph S2 [Step 2 Details]
+        B1[ROI Extraction and Cleaning] --> B2[ROI-Level Feature Computation]
     end
 
-    subgraph S3[ ]
+    subgraph S3 [Step 3 Details]
         C1[Slide-Level Survival Modeling] --> C2[Fisher Encoding per Patient]
-        C2 --> C3[Random Survival Forest (RSF)]
-        C3 --> C4[Patient Risk Scores]
+        C2 --> C3[Random Survival Forest Training]
+        C3 --> C4[Patient-Level Risk Scores]
     end
 
-    subgraph S4[ ]
-        D1[High/Low Risk Grouping] --> D2[Kaplan–Meier (OS & PFS)]
-        D2 --> D3[Hazard Ratio / CI / p-value]
+    subgraph S4 [Step 4 Details]
+        D1[High vs Low Risk Grouping] --> D2[Kaplan-Meier Curves (OS and PFS)]
+        D2 --> D3[Hazard Ratio, CI, p-value]
     end
 
-    style A fill:#e7f1ff,stroke:#1f5eff,stroke-width:1px
-    style B fill:#e7ffe7,stroke:#22aa22,stroke-width:1px
-    style C fill:#fff7e6,stroke:#ffaa22,stroke-width:1px
-    style D fill:#ffe7ef,stroke:#ff2277,stroke-width:1px
-```
 
 ---
 
