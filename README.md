@@ -27,3 +27,38 @@ conda activate pathio_env
 # install all dependencies
 pip install -r requirements.txt
 
+## 🧩 Step 1: Patch Extraction + WSI Habitat Map Generation
+
+**Folder:** `1.Patch_extraction_WSI_habitat_map_generation/`
+
+This stage prepares slide-level spatial context.
+
+---
+
+### 1.1 Patch Extraction
+- Divide each WSI into fixed-size tiles/patches at the desired magnification.  
+- Store patch coordinates for spatial reconstruction.
+
+---
+
+### 1.2 Tissue Classification Training
+- Train a deep learning model to classify tissue patches (e.g., tumor, stroma, necrosis, immune, etc.).  
+- The model learns to identify biologically meaningful tissue types.
+
+---
+
+### 1.3 Patch-Level Inference
+- Predict tissue type for all patches using the trained model.  
+- Output includes patch label and (x, y) spatial coordinates.
+
+---
+
+### 1.4 WSI Habitat Map Generation
+- Stitch labeled patches to reconstruct the full WSI tissue map.  
+- Each region encodes the predicted tissue type.
+
+---
+
+### 🧾 Outputs from Step 1
+- Patch-level labels and features  
+- Tissue habitat map per WSI
