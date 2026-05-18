@@ -124,12 +124,10 @@ if __name__ == '__main__':
 
             with Pool() as pool:
                 # prepare arguments
-#                 pdb.set_trace()
                 items = [((start_h_vec[kk], end_h_vec[kk], start_w_vec[kk], end_w_vec[kk], tile_size, savepath, slide_list[i], num_tiles_w, num_tiles_h, kk, idx, prop['aperio.AppMag'])) for kk in range(idx)]
                 # call the same function with different data in parallel
                 pool.starmap(wsi_patch, items)
             
-#             mark_slide_as_processed(slide_name, out_rootpath)
             
             print('Done for %s' % slide_list[i])
             print("--- %s seconds ---" % (time.time() - start_time))
