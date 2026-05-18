@@ -4,7 +4,6 @@ import numpy as np
 from PIL import Image
 
 import openslide
-# import staintools
 from multiprocessing import Pool
 import time
 import pdb
@@ -27,7 +26,6 @@ def get_start_end_coordinates(x, tile_size):
     return start, end
 
 def wsi_patch(start_h, end_h, start_w, end_w, tile_size, savepath, slide_list, num_tiles_w, num_tiles_h, idx, N, prop):
-#     normalizer = get_stain_normalizer()
     tile_region = tissue[start_h:end_h, start_w:end_w]
     tile = slide.read_region((start_w, start_h), 0, (tile_size, tile_size))
     tile = tile.convert("RGB")
