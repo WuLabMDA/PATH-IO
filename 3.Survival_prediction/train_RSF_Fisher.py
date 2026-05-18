@@ -1,165 +1,150 @@
-from sklearn.model_selection import KFold,StratifiedKFold
-from sksurv.ensemble import RandomSurvivalForest
-
-import numpy as np
-import pandas as pd
-  # Import any relevant metrics
-import pathlib
-import os, sys
-import warnings
-warnings.simplefilter(action='ignore')
-import scipy.io as sio
-from numpy import unique
-
-import torchtuples as tt
-import torch
-import torch.nn as nn
-
-import numpy as np
-from sklearn.cluster import KMeans
-
-
+import os
 import random
-import numpy as np
-import torch
+import warnings
 
 import numpy as np
 import pandas as pd
+import torch
+
 from sklearn.mixture import GaussianMixture
-from scipy.stats import norm
-import numpy as np
-import pandas as pd
-from sklearn.mixture import GaussianMixture
-from scipy.stats import norm
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import PCA
 from sksurv.ensemble import RandomSurvivalForest
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import StandardScaler
 
 
-def set_all_seeds(seed):
-    """
-    Sets random seed for all major libraries to ensure reproducibility.
-    """
-    random.seed(seed)  # Python's built-in random module
-    np.random.seed(seed)  # NumPy
-    torch.manual_seed(seed)  # PyTorch CPU
-    torch.cuda.manual_seed(seed)  # PyTorch GPU (single-GPU)
-    torch.cuda.manual_seed_all(seed)  # PyTorch GPU (all GPUs)
-    torch.backends.cudnn.deterministic = True  # Ensures deterministic behavior
-    torch.backends.cudnn.benchmark = False  # Disables non-deterministic optimizations
+warnings.simplefilter(action="ignore")
 
-# Example usage
+
+# ============================================================
+# Reproducibility
+# ============================================================
+
+def set_all_seeds(seed=42):
+
+    random.seed(seed)
+    np.random.seed(seed)
+
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
 set_all_seeds(42)
- 
+
+
+# ============================================================
+# Train GMM
+# ============================================================
+
 def train_gmm(descriptors, n_components):
-  """
-  Train a Gaussian Mixture Model (GMM) for Fisher Vector encoding.
 
-  Parameters:
-      descriptors (ndarray): Local descriptors from training images.
-      n_components (int): Number of Gaussian components.
+    gmm = GaussianMixture(
+        n_components=n_components,
+        covariance_type="diag",
+        random_state=42
+    )
 
-  Returns:
-      gmm (GaussianMixture): Trained GMM.
-  """
-  gmm = GaussianMixture(n_components=n_components, covariance_type="diag", random_state=42)
-  gmm.fit(descriptors)
-  return gmm
+    gmm.fit(descriptors)
+
+    return gmm
+
+
+# ============================================================
+# Fisher vector encoding
+# ============================================================
 
 def fisher_vector_encoding(descriptors, gmm):
-  """
-  Perform Fisher Vector encoding on a set of local descriptors.
 
-  Parameters:
-      descriptors (ndarray): Local descriptors of an image.
-      gmm (GaussianMixture): Pre-trained GMM.
+    n_components = gmm.n_components
 
-  Returns:
-      fisher_vector (ndarray): Fisher Vector of fixed length.
-  """
-  n_components = gmm.n_components
-  n_features = descriptors.shape[1]
+    weights = gmm.weights_
+    means = gmm.means_
+    covariances = gmm.covariances_
 
-  # GMM parameters
-  weights = gmm.weights_
-  means = gmm.means_
-  covariances = gmm.covariances_
+    posteriors = gmm.predict_proba(descriptors)
 
-  # Posterior probabilities (responsibilities)
-  posteriors = gmm.predict_proba(descriptors)  # Shape: (n_descriptors, n_components)
+    fisher_vector = []
 
-  # Fisher vector components
-  fisher_vector = []
+    for k in range(n_components):
 
-  for k in range(n_components):
-      # Compute first-order statistics
-      diff = descriptors - means[k]
-      scaled_diff = posteriors[:, k][:, np.newaxis] * diff
-      fisher_vector.append(np.sum(scaled_diff, axis=0) / np.sqrt(weights[k]))
+        diff = descriptors - means[k]
 
-      # Compute second-order statistics
-      squared_diff = posteriors[:, k][:, np.newaxis] * (diff ** 2 - covariances[k])
-      fisher_vector.append(np.sum(squared_diff, axis=0) / np.sqrt(2 * weights[k]))
+        scaled_diff = (
+            posteriors[:, k][:, np.newaxis] * diff
+        )
 
-  fisher_vector = np.concatenate(fisher_vector)
+        fisher_vector.append(
+            np.sum(scaled_diff, axis=0) /
+            np.sqrt(weights[k])
+        )
 
-  # Power normalization
-  fisher_vector = np.sign(fisher_vector) * np.sqrt(np.abs(fisher_vector))
-  # L2 normalization
-  fisher_vector /= np.sqrt(np.sum(fisher_vector ** 2) + 1e-10)
+        squared_diff = (
+            posteriors[:, k][:, np.newaxis] *
+            (diff ** 2 - covariances[k])
+        )
 
-  return fisher_vector
+        fisher_vector.append(
+            np.sum(squared_diff, axis=0) /
+            np.sqrt(2 * weights[k])
+        )
 
-df_train = pd.read_csv("").drop_duplicates('case_ID').reset_index(drop=True)
-df_valid = pd.read_csv("").drop_duplicates('case_ID').reset_index(drop=True)
-df_test = pd.read_csv("").drop_duplicates('case_ID').reset_index(drop=True) 
-df_combined = pd.concat([df_train, df_valid], ignore_index=True)
+    fisher_vector = np.concatenate(fisher_vector)
 
+    # Power normalization
+    fisher_vector = (
+        np.sign(fisher_vector) *
+        np.sqrt(np.abs(fisher_vector))
+    )
 
+    # L2 normalization
+    fisher_vector /= (
+        np.sqrt(np.sum(fisher_vector ** 2) + 1e-10)
+    )
 
-all_risks = pd.read_excel(".xlsx")
-for i in range(len(all_risks['Filename'])):
-    file = all_risks['Filename'][i].split('-', 1)
-#         all_risks['Filename'][i] = file[0]
-    all_risks['Filename'] = all_risks['Filename'].apply(lambda x: x.split('-', 1)[0])
+    return fisher_vector
 
 
+# ============================================================
+# Generate Fisher vectors
+# ============================================================
 
-train_descriptors_list = []
-for case_id in df_combined['case_ID']:
-    index = all_risks[all_risks['Filename'] == str(case_id)].drop(columns=['Filename']).values
-    train_descriptors_list.append(index)
-    
-    
-test_descriptors_list = []
-for case_id in df_test['case_ID']:
-    index = all_risks[all_risks['Filename'] == str(case_id)].drop(columns=['Filename']).values
-    test_descriptors_list.append(index)  
-    
-    
- 
-  
-    
-all_train_descriptors = np.vstack(train_descriptors_list)
+def generate_fisher_vectors(descriptor_list, gmm):
+
+    fisher_vectors = []
+
+    for descriptors in descriptor_list:
+
+        fisher_vector = fisher_vector_encoding(
+            descriptors,
+            gmm
+        ).reshape(1, -1)
+
+        fisher_vectors.append(fisher_vector)
+
+    fisher_vectors = np.vstack(fisher_vectors)
+
+    return fisher_vectors
 
 
-print("train_descriptors_list  =  ", all_train_descriptors.shape)
+# ============================================================
+# Train RSF
+# ============================================================
 
+def train_rsf(features, clinical_df):
 
-def train_and_evaluate_model(train_vlad_vectors, test_vlad_vectors_list, df_combined, test_cohort_list, random_state=42):
-    # Extract target variables (OS_Status and OS) from the training dataset
-    y_train = df_combined[['OS_Status', 'OS']]
-    
-    # Convert y_train to structured array
-    events_train = y_train['OS_Status'].astype(bool).tolist()
-    time_values_train = y_train['OS'].astype(float).tolist()
-    y_train_structured = np.array(list(zip(events_train, time_values_train)), dtype=[('event', bool), ('time', float)])
+    y_train = np.array(
+        list(
+            zip(
+                clinical_df["OS_Status"].astype(bool),
+                clinical_df["OS"].astype(float)
+            )
+        ),
+        dtype=[("event", bool), ("time", float)]
+    )
 
-    # Train the RandomSurvivalForest using VLAD vectors as input features
     rsf = RandomSurvivalForest(
         n_estimators=500,
         min_samples_split=10,
@@ -168,135 +153,261 @@ def train_and_evaluate_model(train_vlad_vectors, test_vlad_vectors_list, df_comb
         bootstrap=True,
         oob_score=True,
         n_jobs=-1,
-        random_state=random_state
+        random_state=42
     )
 
-    # Train the model on the VLAD vectors from the training set
-    rsf.fit(train_vlad_vectors, y_train_structured)
+    rsf.fit(features, y_train)
 
-    # Initialize a dictionary to store results for each cohort
-    results = {}
-
-    # Loop over the test cohorts and corresponding test VLAD vectors
-    for cohort_name, (test_vlad_vectors, test_cohort) in zip(['default'], zip(test_vlad_vectors_list, test_cohort_list)):
-        # Extract target variables (OS_Status and OS) from the test cohort
-        y_test = test_cohort[['OS_Status', 'OS']]
-        
-        # Convert y_test to structured array
-        events_test = y_test['OS_Status'].astype(bool).tolist()
-        time_values_test = y_test['OS'].astype(float).tolist()
-        y_test_structured = np.array(list(zip(events_test, time_values_test)), dtype=[('event', bool), ('time', float)])
-
-        # Evaluate the model on the test cohort
-        test_c_index = rsf.score(test_vlad_vectors, y_test_structured)
-        test_risks = rsf.predict(test_vlad_vectors)
-        train_risks = rsf.predict(train_vlad_vectors)
-        train_c_index = rsf.score(train_vlad_vectors, y_train_structured)
-
-        # Store the results in the dictionary
-        results[cohort_name] = {
-            'test_c_index': test_c_index,
-            'train_c_index': train_c_index,
-            'test_risks': test_risks,
-            'train_risks': train_risks,
-        }
-
-    return results
-
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.decomposition import PCA
-
-# Hyperparameters
-
-n_clusters_list = [5, 6, 8, 10, 12, 14, 15, 16, 20, 25, 30, 35, 40, 45, 50, 55, 60] #added 12
-pca_energy_list = [0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
+    return rsf
 
 
-is_normalize = True
+# ============================================================
+# Evaluate RSF
+# ============================================================
 
-# Placeholder for results
+def evaluate_rsf(rsf, features, clinical_df):
+
+    y_test = np.array(
+        list(
+            zip(
+                clinical_df["OS_Status"].astype(bool),
+                clinical_df["OS"].astype(float)
+            )
+        ),
+        dtype=[("event", bool), ("time", float)]
+    )
+
+    c_index = rsf.score(features, y_test)
+
+    risks = rsf.predict(features)
+
+    return c_index, risks
+
+
+# ============================================================
+# User-defined paths
+# ============================================================
+
+train_csv = "/path/to/train.csv"
+valid_csv = "/path/to/valid.csv"
+test_csv = "/path/to/test.csv"
+
+risk_feature_file = "/path/to/risk_features.xlsx"
+
+results_output_csv = "/path/to/fisher_results.csv"
+
+risk_output_dir = "/path/to/risk_outputs/"
+
+
+# ============================================================
+# Load cohorts
+# ============================================================
+
+df_train = pd.read_csv(train_csv).drop_duplicates("case_ID")
+df_valid = pd.read_csv(valid_csv).drop_duplicates("case_ID")
+df_test = pd.read_csv(test_csv).drop_duplicates("case_ID")
+
+df_combined = pd.concat(
+    [df_train, df_valid],
+    ignore_index=True
+)
+
+
+# ============================================================
+# Load ROI-level risk descriptors
+# ============================================================
+
+all_risks = pd.read_excel(risk_feature_file)
+
+all_risks["Filename"] = (
+    all_risks["Filename"]
+    .apply(lambda x: x.split("-", 1)[0])
+)
+
+
+# ============================================================
+# Build descriptor lists
+# ============================================================
+
+train_descriptors_list = []
+
+for case_id in df_combined["case_ID"]:
+
+    descriptors = (
+        all_risks[
+            all_risks["Filename"] == str(case_id)
+        ]
+        .drop(columns=["Filename"])
+        .values
+    )
+
+    train_descriptors_list.append(descriptors)
+
+
+test_descriptors_list = []
+
+for case_id in df_test["case_ID"]:
+
+    descriptors = (
+        all_risks[
+            all_risks["Filename"] == str(case_id)
+        ]
+        .drop(columns=["Filename"])
+        .values
+    )
+
+    test_descriptors_list.append(descriptors)
+
+
+all_train_descriptors = np.vstack(
+    train_descriptors_list
+)
+
+print(
+    "All train descriptors shape:",
+    all_train_descriptors.shape
+)
+
+
+# ============================================================
+# Hyperparameter search
+# ============================================================
+
+n_clusters_list = [5, 10, 15, 20, 25]
+pca_energy_list = [0.5, 0.7, 0.9, 1.0]
+
 results_list = []
 
 for n_clusters in n_clusters_list:
-    print(f"Processing n_clusters = {n_clusters}")
-    
-    # Train GMM model
-    gmm_model = train_gmm(all_train_descriptors, n_clusters)
-    
+
+    print(f"\nProcessing n_clusters = {n_clusters}")
+
+    gmm_model = train_gmm(
+        all_train_descriptors,
+        n_clusters
+    )
+
     for pca_energy in pca_energy_list:
-        print(f"  Processing pca_energy = {pca_energy}")
-        
-        # Initialize PCA and scaler
-        pca = PCA(n_components=pca_energy, svd_solver='full')
-        scaler = MinMaxScaler()
-        
-        # Training Fisher vectors
-        train_fisher_vectors = []
-        for descriptors in train_descriptors_list:
-            fisher_vector = fisher_vector_encoding(descriptors, gmm_model).reshape(1, -1)
-            train_fisher_vectors.append(fisher_vector)
-        
-        normalized_train_fisher_vector = np.vstack(train_fisher_vectors)
-        if pca_energy > 0:
-            pca.fit(normalized_train_fisher_vector)
-            normalized_train_fisher_vector = pca.transform(normalized_train_fisher_vector)
-        
-        if is_normalize:
-            normalized_train_fisher_vector = scaler.fit_transform(normalized_train_fisher_vector)
-        
-        # Testing Fisher vectors for all cohorts
-        test_fisher_vectors_list = []
-        for test_descriptors in [test_descriptors_list, test_descriptors_list_cimac, test_descriptors_list_mayo,test_descriptors_list_tcga,test_descriptors_list_cptac,test_descriptors_list_roussy]:
-            cohort_fisher_vectors = []
-            for descriptors in test_descriptors:
-                fisher_vector = fisher_vector_encoding(descriptors, gmm_model).reshape(1, -1)
-                cohort_fisher_vectors.append(fisher_vector)
-            
-            normalized_test_fisher_vector = np.vstack(cohort_fisher_vectors)
-            if pca_energy > 0:
-                normalized_test_fisher_vector = pca.transform(normalized_test_fisher_vector)
-            if is_normalize:
-                normalized_test_fisher_vector = scaler.transform(normalized_test_fisher_vector)
-            
-            test_fisher_vectors_list.append(normalized_test_fisher_vector)
-        
-        # Train and evaluate the model
-        results = train_and_evaluate_model(
-            normalized_train_fisher_vector, test_fisher_vectors_list, df_combined, 
-            [df_test, df_test_cimac, df_test_mayo,df_test_tcga,df_test_cptac,df_test_roussy]
+
+        print(f"  PCA energy = {pca_energy}")
+
+        train_fisher_vectors = generate_fisher_vectors(
+            train_descriptors_list,
+            gmm_model
         )
-        
-        # Collect results
-        for cohort_name, result in results.items():
-            results_list.append({
-                'n_clusters': n_clusters,
-                'pca_energy': pca_energy,
-                'cohort': cohort_name,
-                'test_c_index': result['test_c_index'],
-                'train_c_index': result['train_c_index']
-            })
 
-# # # Save results to CSV
+        test_fisher_vectors = generate_fisher_vectors(
+            test_descriptors_list,
+            gmm_model
+        )
+
+        scaler = MinMaxScaler()
+
+        if pca_energy < 1:
+
+            pca = PCA(
+                n_components=pca_energy,
+                svd_solver="full"
+            )
+
+            train_fisher_vectors = pca.fit_transform(
+                train_fisher_vectors
+            )
+
+            test_fisher_vectors = pca.transform(
+                test_fisher_vectors
+            )
+
+        train_fisher_vectors = scaler.fit_transform(
+            train_fisher_vectors
+        )
+
+        test_fisher_vectors = scaler.transform(
+            test_fisher_vectors
+        )
+
+        rsf = train_rsf(
+            train_fisher_vectors,
+            df_combined
+        )
+
+        train_cindex, train_risks = evaluate_rsf(
+            rsf,
+            train_fisher_vectors,
+            df_combined
+        )
+
+        test_cindex, test_risks = evaluate_rsf(
+            rsf,
+            test_fisher_vectors,
+            df_test
+        )
+
+        results_list.append(
+            {
+                "n_clusters": n_clusters,
+                "pca_energy": pca_energy,
+                "train_c_index": train_cindex,
+                "test_c_index": test_cindex
+            }
+        )
+
+        print(
+            f"Train C-index: {train_cindex:.4f} | "
+            f"Test C-index: {test_cindex:.4f}"
+        )
+
+
+# ============================================================
+# Save hyperparameter search results
+# ============================================================
+
 results_df = pd.DataFrame(results_list)
-results_df.to_csv("", index=False)
-print("Results saved to fisher_results.csv")
+
+results_df.to_csv(
+    results_output_csv,
+    index=False
+)
+
+print(f"Results saved to: {results_output_csv}")
 
 
-train_risks_default = results['default']['train_risks']
-test_risks_default = results['default']['test_risks']
+# ============================================================
+# Save final risks
+# ============================================================
 
-test_risk = test_risks_default
+os.makedirs(risk_output_dir, exist_ok=True)
 
+df_disc_risk = pd.concat(
+    [
+        df_combined.reset_index(drop=True),
+        pd.DataFrame(train_risks, columns=["Risk"])
+    ],
+    axis=1
+)
 
-# 
-train_risk = train_risks_default
-test_risks = pd.DataFrame(test_risk,columns=['Risk'])
-train_risks = pd.DataFrame(train_risk,columns=['Risk'])
+df_disc_risk.to_csv(
+    os.path.join(
+        risk_output_dir,
+        "discovery_risk.csv"
+    ),
+    index=False
+)
 
-df_test_risk_default = pd.concat([df_test, test_risks], axis=1)
-df_test_risk_default.to_csv('test_risk_default_fisher_os_new.csv')
+df_test_risk = pd.concat(
+    [
+        df_test.reset_index(drop=True),
+        pd.DataFrame(test_risks, columns=["Risk"])
+    ],
+    axis=1
+)
 
-df_disc_risk = pd.concat([df_combined, train_risks], axis=1)
-df_disc_risk.to_csv('disc_risk_fisher_os_new.csv')
+df_test_risk.to_csv(
+    os.path.join(
+        risk_output_dir,
+        "test_risk.csv"
+    ),
+    index=False
+)
+
+print("Risk files saved.")
