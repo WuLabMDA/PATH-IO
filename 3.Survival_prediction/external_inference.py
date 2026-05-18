@@ -32,9 +32,9 @@ def get_files(path, rule=".npy"):
 
 
 
-seg_list =get_files('')
+seg_list =get_files("/path/to/npy_files/")
 # Load the CSV file that contains split information (e.g., 'Train', 'Valid', 'Test') and 'ID' columns
-csv_file_path = ''
+csv_file_path = "/path/to/split_information.csv"
 
 data_info = pd.read_csv(csv_file_path)
 
@@ -54,7 +54,7 @@ test_data = [seg for seg, seg_id in zip(seg_list, seg_file_ids) if seg_id in tes
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Load the saved pickle file
 
-saved_pickle_path = ''
+saved_pickle_path = "/path/to/best_model.pkl"
 checkpoint = torch.load(saved_pickle_path)
 
 # Create an instance of your model
@@ -87,7 +87,7 @@ filenames_list_t = [os.path.basename(path) for path in test_data]
 df_t = pd.DataFrame({'Filename': filenames_list_t, 'Risk_Prediction': risk_pred_all_list_t})
 
 # Save the DataFrame to a CSV file
-df_t.to_csv('.csv', index=False)
+df_t.to_csv("/path/to/output_risk_predictions.csv", index=False)
 
 
 
