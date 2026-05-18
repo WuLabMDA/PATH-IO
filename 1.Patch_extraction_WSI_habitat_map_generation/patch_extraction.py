@@ -46,8 +46,8 @@ if __name__ == '__main__':
     example: python svs2tile.py 0 20
     '''
     
-    slide_rootpath='' ## path to the slide directory
-    out_rootpath=''   ## path to the output to be saved
+    slide_rootpath = '/path/to/wsi_directory/'     # Input WSI directory
+    out_rootpath   = '/path/to/output_directory/'  # Output directory
 
 
     
