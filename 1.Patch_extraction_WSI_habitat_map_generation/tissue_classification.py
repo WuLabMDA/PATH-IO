@@ -75,7 +75,7 @@ if __name__ == '__main__':
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-    np.random.seed(99)
+    np.random.seed(42)
 
     train_path = Path('/path/to/training_data')   # Path to training data
     test_path = Path('/path/to/test_data')        # Path to test data
