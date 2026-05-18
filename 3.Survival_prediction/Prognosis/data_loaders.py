@@ -9,9 +9,9 @@ from albumentations.pytorch import ToTensorV2
 
 
 
-INFO_PATH = ''## clinical information file
+INFO_PATH = "/path/to/clinical_information.csv"
 
-HEATMAP_PATH = ''# path to all.npy file
+HEATMAP_PATH = "/path/to/.npy"
 ##################################
 #His-seg Heatmap Loader(MacroNet)
 ##################################
@@ -56,7 +56,6 @@ class SegHeatmapDatasetLoader(Dataset):
         # O = (self.data['PFS_Status'][pd_index].astype(bool)).astype(int)
         # O = torch.tensor(O).type(torch.FloatTensor)
         # T = torch.tensor(T).type(torch.FloatTensor)
-        ## T /= 90
         return seg, T, O, seg_filepath
 
 
