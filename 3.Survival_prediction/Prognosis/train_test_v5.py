@@ -80,10 +80,10 @@ def train(
     cindex_test_max = 0
 
     cudnn.deterministic = True
-    torch.cuda.manual_seed_all(2019)
-    torch.manual_seed(2019)
-    random.seed(2019)
-    np.random.seed(2019)
+    torch.cuda.manual_seed_all(42)
+    torch.manual_seed(42)
+    random.seed(42)
+    np.random.seed(42)
 
     # --------------------------------------------------------
     # Model
