@@ -1,193 +1,344 @@
-# delete work space
+# ============================================================
+# Clear workspace
+# ============================================================
+
 rm(list = ls(all = TRUE))
 graphics.off()
 
-# load useful libraries
-library("beanplot")
-library("biclust")
-library("boot")
-library("caret")
-library("clusterRepro")
-library("ConsensusClusterPlus")
-library("dplyr")
-library("EnhancedVolcano")
-library("forestplot")
-library("glmnet")
-library("ggridges")
-library("ggplot2")
-library("Glimma")
-library("igraph")
-library("kernlab")
-library("KRLS")
-library("limma")
-library("lubridate")
-library("magrittr")
-library("mclust")
-library("survival")
-library("survcomp")
-library("survivalROC")
-library("superheat")
-library("Seurat")
-library("randomForestSRC")
-library("reshape2")
-library("R.matlab")
-library("Rtsne")
-library("tsne")
-library("survminer")
-library("survival")
+# ============================================================
+# Load libraries
+# ============================================================
 
-# set working directory
+library(survival)
+library(survminer)
+library(ggplot2)
 
-setwd("")
+# ============================================================
+# Custom KM plot theme
+# ============================================================
 
-# load customized functions
-source("concensus_clustering.R")
-source("heatmap.3.R")
-source("kmplot.R")
-source("my_CC.R")
-
-# Function to set a custom ggplot theme for KM plots
 custom_theme <- function() {
+
   theme_survminer() %+replace%
     theme(
-      plot.title = element_text(size = 14, color = "black", hjust = 0.5, face = "bold"),
-      axis.text.x = element_text(size = 14, color = "black", face = "bold"),
-      legend.text = element_text(size = 14, color = "black", face = "bold"),
-      legend.title = element_text(size = 14, color = "black", face = "bold"),
-      axis.text.y = element_text(size = 14, color = "black", face = "bold"),
-      axis.title.x = element_text(size = 14, color = "black", face = "bold"),
-      axis.title.y = element_text(size = 14, color = "black", face = "bold")
+      plot.title = element_text(
+        size = 14,
+        color = "black",
+        hjust = 0.5,
+        face = "bold"
+      ),
+
+      axis.text.x = element_text(
+        size = 14,
+        color = "black",
+        face = "bold"
+      ),
+
+      axis.text.y = element_text(
+        size = 14,
+        color = "black",
+        face = "bold"
+      ),
+
+      axis.title.x = element_text(
+        size = 14,
+        color = "black",
+        face = "bold"
+      ),
+
+      axis.title.y = element_text(
+        size = 14,
+        color = "black",
+        face = "bold"
+      ),
+
+      legend.text = element_text(
+        size = 14,
+        color = "black",
+        face = "bold"
+      ),
+
+      legend.title = element_text(
+        size = 14,
+        color = "black",
+        face = "bold"
+      )
     )
 }
 
-#------------------------- Read Data -------------------------------
-f.train <- read.csv("") 
-f.test <- read.csv("") 
 
-#------------------------- Risk Distribution Plot ------------------
-plot(density(f.train$Risk_Prediction, bw = 5), lty = 2, lwd = 2, col = "red", 
-     xlim = c(50, 180), ylim = c(0, 0.05), main = "Density Plots")
-lines(density(f.test$Risk_Prediction, bw = 5), lty = 3, lwd = 2, col = "blue")
-legend("topright", legend = c("Train", "Testing"), col = c("red", "blue"), 
-       lty = c(2, 3), lwd = 3, cex = 1.2)
+# ============================================================
+# User-defined paths
+# ============================================================
 
-#------------------------- Identify Optimal Cutoff ------------------
+train_csv <- "/path/to/train_risk_predictions.csv"
+
+test_csv <- "/path/to/test_risk_predictions.csv"
+
+
+# ============================================================
+# Read data
+# ============================================================
+
+f.train <- read.csv(train_csv)
+
+f.test <- read.csv(test_csv)
+
+
+# ============================================================
+# Risk distribution plot
+# ============================================================
+
+plot(
+  density(f.train$Risk_Prediction, bw = 5),
+  lty = 2,
+  lwd = 2,
+  col = "red",
+  xlim = c(50, 180),
+  ylim = c(0, 0.05),
+  main = "Risk Score Density Plot"
+)
+
+lines(
+  density(f.test$Risk_Prediction, bw = 5),
+  lty = 3,
+  lwd = 2,
+  col = "blue"
+)
+
+legend(
+  "topright",
+  legend = c("Train", "Test"),
+  col = c("red", "blue"),
+  lty = c(2, 3),
+  lwd = 3,
+  cex = 1.2
+)
+
+
+# ============================================================
+# Identify optimal cutoff
+# ============================================================
+
 HR.train <- rep(0, 19)
 HR.test <- rep(0, 19)
+
 p.train <- rep(1, 19)
 p.test <- rep(1, 19)
+
 c.off <- rep(1, 19)
 
 for (i in 1:18) {
-  cutoff <- quantile(f.train$Risk_Prediction, 0.05 * i)
-  pt.stratify.train <- factor(f.train$Risk_Prediction >= cutoff)
-  pt.stratify.test <- factor(f.test$Risk_Prediction >= cutoff)
-  
-  cox.train <- summary(coxph(Surv(f.train$OS, f.train$OS_Status) ~ pt.stratify.train))
-  cox.test <- summary(coxph(Surv(f.test$OS, f.test$OS_Status) ~ pt.stratify.test))
-  
+
+  cutoff <- quantile(
+    f.train$Risk_Prediction,
+    0.05 * i
+  )
+
+  pt.stratify.train <- factor(
+    f.train$Risk_Prediction >= cutoff
+  )
+
+  pt.stratify.test <- factor(
+    f.test$Risk_Prediction >= cutoff
+  )
+
+  cox.train <- summary(
+    coxph(
+      Surv(OS, OS_Status) ~ pt.stratify.train,
+      data = f.train
+    )
+  )
+
+  cox.test <- summary(
+    coxph(
+      Surv(OS, OS_Status) ~ pt.stratify.test,
+      data = f.test
+    )
+  )
+
   HR.train[i] <- cox.train$conf.int[2]
   p.train[i] <- cox.train$coefficients[5]
+
   HR.test[i] <- cox.test$conf.int[2]
   p.test[i] <- cox.test$coefficients[5]
+
   c.off[i] <- cutoff
 }
 
-print(cbind(HR.train, p.train, HR.test, p.test, c.off))
 
-#------------------------- Select Cut-off ---------------------------
-sele_cutoff <- 
-cutoff_value <- quantile(f.train$Risk_Prediction, 0.05 * sele_cutoff)
+cutoff_results <- data.frame(
+  Percentile = seq(0.05, 0.90, by = 0.05),
+  Cutoff = c.off[1:18],
+  HR_Train = HR.train[1:18],
+  P_Train = p.train[1:18],
+  HR_Test = HR.test[1:18],
+  P_Test = p.test[1:18]
+)
 
-pt.stratify.train <- factor(f.train$Risk_Prediction >= cutoff_value)
-f.train$DeepFeatures <- factor(pt.stratify.train, levels = c("TRUE", "FALSE"))
+print(cutoff_results)
 
-#------------------------- Training KM Plot (Censored at 60 mo) -------------------------
-# Apply censoring at 60 months
+
+# ============================================================
+# Select cutoff percentile
+# ============================================================
+
+sele_cutoff <- 10
+# Example:
+# 10 means 50th percentile
+# because 0.05 * 10 = 0.50
+
+cutoff_value <- quantile(
+  f.train$Risk_Prediction,
+  0.05 * sele_cutoff
+)
+
+cat("\nSelected cutoff:", cutoff_value, "\n")
+
+
+# ============================================================
+# Apply 60-month censoring
+# ============================================================
+
 t <- 60
-f.train$OS_c <- ifelse(f.train$OS > t, t, f.train$OS)
-f.train$OS_Status_c <- ifelse(f.train$OS > t, 0, f.train$OS_Status)
 
-pt.stratify.train <- factor(f.train$Risk_Prediction >= cutoff_value)
-f.train$DeepFeatures <- factor(pt.stratify.train, levels = c("TRUE", "FALSE"))
-
-cox_train <- coxph(Surv(OS_c, OS_Status_c) ~ pt.stratify.train, data = f.train)
-cox_train_summary <- summary(cox_train)
-
-HR_train <- round(cox_train_summary$conf.int[1, "exp(coef)"], 2)
-lower_CI_train <- round(cox_train_summary$conf.int[1, "lower .95"], 2)
-upper_CI_train <- round(cox_train_summary$conf.int[1, "upper .95"], 2)
-
-hr_label_train <- paste0("HR: ", HR_train, " (95% CI: ", lower_CI_train, "-", upper_CI_train, ")")
-
-fit <- survfit(Surv(OS_c, OS_Status_c) ~ DeepFeatures, data = f.train)
-
-g <- ggsurvplot(
-  fit,
-  data = f.train,
-  title = paste(hr_label_train),
-  ggtheme = custom_theme(),
-  conf.int = FALSE,
-  pval = TRUE,                         # log-rank p-value
-  fun = "pct",
-  risk.table = TRUE,
-  xlab = "Time (months)",
-  ylab = "Overall Survival (%)",
-  size = 1,
-  risk.table.fontsize = 5,
-  linetype = "strata",
-  palette = c("Red", "Green4"),
-  risk.table.col = "strata",
-  legend.title = "Risk",
-  legend.labs = c("High", "Low"),
-  xlim = c(0, 60),                     # restrict to 60 months
-  break.x.by = 6                       # every 6 months
+f.train$OS_c <- ifelse(
+  f.train$OS > t,
+  t,
+  f.train$OS
 )
 
-# Adjust y-axis label and risk table font size
-g$plot <- g$plot + theme(axis.title.y = element_text(angle = 90))
-print(g)
-
-#------------------------- Testing KM Plot (Censored at 60 mo) --------------------------
-f.test$OS_c <- ifelse(f.test$OS > t, t, f.test$OS)
-f.test$OS_Status_c <- ifelse(f.test$OS > t, 0, f.test$OS_Status)
-
-pt.stratify.test <- factor(f.test$Risk_Prediction >= cutoff_value)
-f.test$DeepFeatures <- factor(pt.stratify.test, levels = c("TRUE", "FALSE"))
-
-cox_test <- coxph(Surv(OS_c, OS_Status_c) ~ pt.stratify.test, data = f.test)
-cox_test_summary <- summary(cox_test)
-
-HR_test <- round(cox_test_summary$conf.int[1, "exp(coef)"], 2)
-lower_CI_test <- round(cox_test_summary$conf.int[1, "lower .95"], 2)
-upper_CI_test <- round(cox_test_summary$conf.int[1, "upper .95"], 2)
-
-hr_label_test <- paste0("HR: ", HR_test, " (95% CI: ", lower_CI_test, "-", upper_CI_test, ")")
-
-fit <- survfit(Surv(OS_c, OS_Status_c) ~ DeepFeatures, data = f.test)
-
-g <- ggsurvplot(
-  fit,
-  data = f.test,
-  title = paste(hr_label_test),
-  ggtheme = custom_theme(),
-  conf.int = FALSE,
-  pval = TRUE,                         # log-rank p-value
-  fun = "pct",
-  risk.table = TRUE,
-  xlab = "Time (months)",
-  ylab = "Overall Survival (%)",
-  size = 1,
-  risk.table.fontsize = 5,
-  linetype = "strata",
-  palette = c("Red", "Green4"),
-  risk.table.col = "strata",
-  legend.title = "Risk",
-  legend.labs = c("High", "Low"),
-  xlim = c(0, 60),                     # restrict to 60 months
-  break.x.by = 6                       # every 6 months
+f.train$OS_Status_c <- ifelse(
+  f.train$OS > t,
+  0,
+  f.train$OS_Status
 )
 
-# Adjust y-axis label and risk table font size
-g$plot <- g$plot + theme(axis.title.y = element_text(angle = 90))
-print(g)
+f.test$OS_c <- ifelse(
+  f.test$OS > t,
+  t,
+  f.test$OS
+)
+
+f.test$OS_Status_c <- ifelse(
+  f.test$OS > t,
+  0,
+  f.test$OS_Status
+)
+
+
+# ============================================================
+# Function to generate KM plot
+# ============================================================
+
+generate_km_plot <- function(data_df, title_text) {
+
+  pt.stratify <- factor(
+    data_df$Risk_Prediction >= cutoff_value
+  )
+
+  data_df$DeepFeatures <- factor(
+    pt.stratify,
+    levels = c("TRUE", "FALSE")
+  )
+
+  cox_model <- coxph(
+    Surv(OS_c, OS_Status_c) ~ pt.stratify,
+    data = data_df
+  )
+
+  cox_summary <- summary(cox_model)
+
+  HR <- round(
+    cox_summary$conf.int[1, "exp(coef)"],
+    2
+  )
+
+  lower_CI <- round(
+    cox_summary$conf.int[1, "lower .95"],
+    2
+  )
+
+  upper_CI <- round(
+    cox_summary$conf.int[1, "upper .95"],
+    2
+  )
+
+  hr_label <- paste0(
+    "HR: ",
+    HR,
+    " (95% CI: ",
+    lower_CI,
+    "-",
+    upper_CI,
+    ")"
+  )
+
+  fit <- survfit(
+    Surv(OS_c, OS_Status_c) ~ DeepFeatures,
+    data = data_df
+  )
+
+  g <- ggsurvplot(
+    fit,
+    data = data_df,
+
+    title = hr_label,
+
+    ggtheme = custom_theme(),
+
+    conf.int = FALSE,
+    pval = TRUE,
+
+    fun = "pct",
+
+    risk.table = TRUE,
+
+    xlab = "Time (months)",
+    ylab = "Overall Survival (%)",
+
+    size = 1,
+
+    risk.table.fontsize = 5,
+
+    linetype = "strata",
+
+    palette = c("Red", "Green4"),
+
+    risk.table.col = "strata",
+
+    legend.title = "Risk",
+    legend.labs = c("High", "Low"),
+
+    xlim = c(0, 60),
+
+    break.x.by = 6
+  )
+
+  g$plot <- g$plot +
+    theme(
+      axis.title.y = element_text(angle = 90)
+    )
+
+  print(g)
+}
+
+
+# ============================================================
+# Training KM plot
+# ============================================================
+
+generate_km_plot(
+  f.train,
+  "Training Cohort"
+)
+
+
+# ============================================================
+# Testing KM plot
+# ============================================================
+
+generate_km_plot(
+  f.test,
+  "Testing Cohort"
+)
