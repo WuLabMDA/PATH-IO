@@ -1,38 +1,68 @@
+# Path-IO
+
 > **About this Repository**  
 > This repository hosts the complete *Path-IO* computational pathology framework for predicting immunotherapy outcomes in metastatic non–small cell lung cancer (mNSCLC) using H&E whole-slide images (WSIs).  
 > The pipeline integrates patch-level tissue classification, WSI habitat mapping, ROI preprocessing, survival modeling, and patient-level risk stratification.  
 > It is designed for reproducible, multi-institutional research in digital pathology and translational oncology.
+
 ---
 
 ## 🌟 Key Features
 
 - **Multi-stage modular design:** From patch extraction to patient-level stratification, each step is modular and reproducible.  
 - **Tissue habitat mapping:** Generates interpretable WSI-level tissue habitat maps.  
-- **Patient-level survival modeling:** Aggregates biologically relevant regions of interest to build robust patient-level survival models.   
-- **Clinical stratification:** Provides Kaplan–Meier curves, hazard ratios, and subgroup analyses (PD-L1, IO strategy, etc.) for OS and PFS.  
-- **Scalable & reproducible:** Designed for multi-institutional datasets with standardized outputs for downstream statistical analysis and publication.
+- **Patient-level survival modeling:** Aggregates biologically relevant regions of interest (ROIs) to build robust patient-level survival models.  
+- **Clinical stratification:** Provides Kaplan–Meier curves, hazard ratios, and subgroup analyses for OS and PFS.  
+- **Scalable & reproducible:** Designed for multi-institutional datasets with standardized outputs for downstream statistical analysis and publication.  
 
 ---
 
 # 🧬 Path-IO Pipeline
 
-Path-IO (Pathology-Driven Immunotherapy Optimization), a biologically grounded, interpretable framework that predicts patient response to immunotherapy directly from routine H&E slides. 
-The workflow includes patch extraction, tissue habitat mapping, ROI preprocessing, survival modeling, patient-level risk scoring, and clinical stratification.
+Path-IO (*Pathology-Driven Immunotherapy Optimization*) is a biologically grounded and interpretable computational pathology framework that predicts patient response to immunotherapy directly from routine H&E whole-slide images.
+
+The workflow includes:
+- Patch extraction  
+- Tissue habitat mapping  
+- ROI preprocessing  
+- Survival modeling  
+- Patient-level risk scoring  
+- Clinical stratification  
+
+<p align="center">
+  <img src="figures/path_io_pipeline.png" width="1000">
+</p>
+
+<p align="center">
+  <b>Overview of the Path-IO computational workflow.</b>
+</p>
 
 ---
 
 ## 📦 Repository Structure
 
-```
-├── 1.Patch_extraction_WSI_habitat_map_generation/   # Patch extraction & habitat map generation  
-├── 2.WSI_map_preprocessing/                         # ROI extraction & map preprocessing  
-├── 3.Survival_prediction/                           # Slide-level & patient-level survival modeling  
-├── 4.Stratification/                                # Risk stratification and KM plots  
-├── requirements.txt                                 # Dependencies  
-└── README.md                                        # Documentation  
-```
-
----
+```text
+Path-IO/
+│
+├── README.md
+├── requirements.txt
+│
+├── figures/
+│   └── path_io_pipeline.png
+│
+├── 1.Patch_extraction_WSI_habitat_map_generation/
+│   ├── patch_extraction/
+│   ├── tissue_classification/
+│   ├── inference/
+│   └── habitat_map_generation/
+│
+├── 2.WSI_map_preprocessing/
+│
+├── 3.Survival_prediction/
+│
+├── 4.Stratification/
+│
+└── outputs/
 
 ## ⚙️ Environment Setup
 
