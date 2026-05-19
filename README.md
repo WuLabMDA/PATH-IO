@@ -30,7 +30,7 @@ The workflow includes:
 - Clinical stratification  
 
 <p align="center">
-  <img src="figures/path_io_pipeline.png" width="1000">
+  <img src="figures/path_io_pipeline.png.png" width="1000">
 </p>
 
 <p align="center">
