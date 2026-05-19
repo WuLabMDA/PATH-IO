@@ -113,10 +113,10 @@ This stage prepares slide-level spatial context.
 
 This stage refines the raw tissue habitat maps into biologically meaningful **Regions of Interest (ROIs)** suitable for downstream survival modeling.
 
-### 2.1 ROI Extraction & Cleaning
+### 2.1 ROI Extraction 
 - Identify informative tissue regions.  
 - Remove background, artifacts, or non-tissue areas.  
-- Optionally smooth, merge, or threshold small regions.
+
 
 ### 🧾 Outputs from Step 2  
 - Preprocessed WSI maps ready for survival training  
@@ -143,7 +143,7 @@ Aggregate multiple WSIs per patient to form a unified patient representation.
 ### 🧾 Outputs from Step 3
 - Trained slide- and patient-level models  
 - Predicted risk scores for OS and PFS  
-- Evaluation metrics (C-index, log-rank p)  
+- Evaluation metrics (C-index)  
 
 ---
 
@@ -155,7 +155,6 @@ This stage interprets **patient-level risk scores** into clinically meaningful g
 
 ### 4.1 Risk Group Assignment
 - Stratify patients into **High** and **Low** risk groups using:  
-  - Median risk score (default)  
   - Quantile cut-offs or optimal KM thresholds  
 
 ### 4.2 Survival Stratification
@@ -163,13 +162,10 @@ This stage interprets **patient-level risk scores** into clinically meaningful g
   - **Overall Survival (OS)**  
   - **Progression-Free Survival (PFS)**  
 - Compute and report: HR, 95 % CI, log-rank *p* value.  
-- Optionally annotate HR/CI on the plots.
 
 
 ### 🧾 Outputs from Step 4
 - Kaplan–Meier plots (OS & PFS)  
-- Forest plots / summary tables (HR & CI)  
-- CSVs with risk groups & statistics  
 
 ---
 
@@ -178,7 +174,7 @@ This stage interprets **patient-level risk scores** into clinically meaningful g
 ## 🧪 Notes
 - All paths and parameters (patch size, magnification, model architecture, etc.) are configurable in the corresponding folders.  
 - Supports multiple WSIs per patient for Fisher encoding and RSF aggregation.  
-- Stratification assumes available survival metadata (OS, PFS, status).  
+- Stratification assumes available survival metadata (OS, PFS status).  
 
 ---
 
