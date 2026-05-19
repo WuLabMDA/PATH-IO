@@ -511,14 +511,7 @@ def test(
     )
 
 
-# ============================================================
-# Example usage
-# ============================================================
 
-if __name__ == "__main__":
-
-    train_data = "/path/to/train_data.csv"
-    valid_data = "/path/to/valid_data.csv"
 
     train(
         train_data=train_data,
