@@ -13,7 +13,7 @@ classes = [
     'Background',
     'Bronchi',
     'Inflammatory',
-    'Lung',
+    'Normal',
     'Necrosis',
     'Stroma',
     'Tumor',
@@ -29,7 +29,7 @@ label_color_dict = {
     0: (54, 54, 54),      # Background
     1: (251, 217, 204),  # Bronchi
     2: (41, 150, 191),   # Inflammatory
-    3: (1, 0, 128),      # Lung
+    3: (1, 0, 128),      # Normal
     4: (142, 142, 142),  # Necrosis
     5: (71, 169, 45),    # Stroma
     6: (229, 76, 37),    # Tumor
