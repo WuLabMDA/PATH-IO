@@ -87,7 +87,7 @@ if __name__ == '__main__':
         'Background',
         'Bronchi',
         'Inflammatory',
-        'Lung',
+        'Normal',
         'Necrosis',
         'Stroma',
         'Tumor',
